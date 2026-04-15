@@ -114,14 +114,14 @@ export function ProductCard({ product }: ProductCardProps) {
             )}
           </div>
           
-          <Button 
-            size="sm" 
-            onClick={handleAddToCart}
-            className="relative"
-          >
-            <ShoppingBag className="w-4 h-4 mr-1.5" />
-            Agregar
-          </Button>
+          <Link href={`/product/${product.handle}`}>
+            <Button 
+              size="sm" 
+              className="relative px-5 bg-slate-900"
+            >
+              VER MÁS
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

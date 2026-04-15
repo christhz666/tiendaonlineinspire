@@ -9,6 +9,7 @@ import { useCurrencyStore } from "@/stores/currencyStore";
 import { useOrderStore } from "@/stores/orderStore";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 
 const PayPalCheckout = dynamic(
   () => import("@/components/ui/PayPalCheckout").then((m) => m.PayPalCheckout),
@@ -16,6 +17,12 @@ const PayPalCheckout = dynamic(
 );
 
 export default function CheckoutPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect to home since we are now a marketing funnel
+    router.replace("/");
+  }, [router]);
   const items = useCartItems();
   const { subtotal, tax, shipping, total } = useCartTotal();
   const { clearCart } = useCartStore();

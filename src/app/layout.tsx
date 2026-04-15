@@ -37,7 +37,7 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
-          <CartSidebar />
+          {/* <CartSidebar /> */}
         </Providers>
       </body>
     </html>
