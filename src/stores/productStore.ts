@@ -72,6 +72,7 @@ export const useProductStore = create<ProductStore>()(
                 priceRange: p.price_range,
                 compareAtPrice: p.compare_at_price,
                 shippingInfo: p.shipping_info,
+                externalUrl: p.external_url,
                 createdAt: p.created_at,
                 updatedAt: p.updated_at
             }));
@@ -112,7 +113,8 @@ export const useProductStore = create<ProductStore>()(
                 compare_at_price: product.compareAtPrice,
                 features: product.features,
                 shipping_info: product.shippingInfo,
-                badges: product.badges
+                badges: product.badges,
+                external_url: product.externalUrl
             }]);
             if (error) throw error;
             
@@ -132,6 +134,10 @@ export const useProductStore = create<ProductStore>()(
             if (data.descriptionHtml) updateData.description_html = data.descriptionHtml;
             if (data.productType) updateData.product_type = data.productType;
             if (data.priceRange) updateData.price_range = data.priceRange;
+            if (data.externalUrl !== undefined) {
+              updateData.external_url = data.externalUrl;
+              delete updateData.externalUrl;
+            }
             
             const { error } = await supabase.from('products').update(updateData).eq('id', id);
             if (error) throw error;
