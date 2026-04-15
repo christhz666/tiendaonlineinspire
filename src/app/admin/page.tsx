@@ -451,6 +451,20 @@ export default function AdminPage() {
                             />
                           </div>
                         </td>
+                        <td className="p-6">
+                           <input
+                              type="text"
+                              placeholder="Sin link asignado"
+                              className={cn(
+                                "w-full text-[10px] bg-slate-50 border-2 p-3 rounded-xl focus:outline-none focus:border-blue-500 font-bold",
+                                !p.externalUrl ? "border-amber-200" : "border-slate-100"
+                              )}
+                              defaultValue={p.externalUrl || ""}
+                              onBlur={(e) => {
+                                updateProduct(p.id, { externalUrl: e.target.value });
+                              }}
+                           />
+                        </td>
                         <td className="p-6 text-right space-x-2">
                           <button
                             onClick={() => window.confirm("¿Seguro quieres borrarlo?") && deleteProduct(p.id)}
