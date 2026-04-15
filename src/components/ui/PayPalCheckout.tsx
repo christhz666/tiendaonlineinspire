@@ -14,6 +14,7 @@ export function PayPalCheckout({ totalUSD, onSuccess, onError }: PayPalCheckoutP
       style={{ layout: "vertical", color: "blue", shape: "rect", label: "checkout" }}
       createOrder={(_data, actions) => {
         return actions.order.create({
+          intent: "CAPTURE",
           application_context: {
             shipping_preference: "NO_SHIPPING",
             user_action: "PAY_NOW",
