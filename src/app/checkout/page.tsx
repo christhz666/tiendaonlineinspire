@@ -196,6 +196,7 @@ export default function CheckoutPage() {
                     <div className="p-8">
                       <div className="max-w-sm mx-auto relative z-10">
                         <PayPalCheckout
+                          key={`paypal-${total}`}
                           totalUSD={(total / 100).toFixed(2)}
                           onSuccess={() => {
                             addOrder({

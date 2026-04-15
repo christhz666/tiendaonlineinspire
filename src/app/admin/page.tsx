@@ -54,6 +54,15 @@ export default function AdminPage() {
   const [includeTax, setIncludeTax] = useState(false);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
 
+  // Manual Product State
+  const [manualProduct, setManualProduct] = useState({
+    title: "",
+    price: "",
+    description: "",
+    image: "",
+    vendor: "Inspire"
+  });
+
   // Store actions/state
   const { products, addProduct, updateProduct, deleteProduct, fetchProducts: fetchAllProducts } = useProductStore();
   const { orders, clearOrders, fetchOrders } = useOrderStore();
@@ -110,6 +119,54 @@ export default function AdminPage() {
       setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateManualProduct = async () => {
+    if (!manualProduct.title || !manualProduct.price || !manualProduct.image) {
+      setError("Por favor completa los campos obligatorios (Nombre, Precio e Imagen)");
+      return;
+    }
+
+    setCreating(true);
+    setError(null);
+
+    try {
+      const priceCents = Math.round(parseFloat(manualProduct.price) * 100);
+      const newProduct = {
+        id: `prod_man_${Date.now()}`,
+        title: manualProduct.title,
+        handle: manualProduct.title.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        description: manualProduct.description,
+        descriptionHtml: manualProduct.description,
+        vendor: manualProduct.vendor,
+        productType: "Venta Manual",
+        tags: ["destacado"],
+        status: "published" as const,
+        images: [{ id: "img_0", url: manualProduct.image }],
+        thumbnail: manualProduct.image,
+        variants: [{
+          id: `var_${Date.now()}`,
+          title: "Default",
+          price: priceCents,
+          inventoryQuantity: 999,
+          options: {},
+        }],
+        options: [{ id: `opt_${Date.now()}`, name: "Variante", values: ["Default"] }],
+        priceRange: { minPrice: priceCents, maxPrice: priceCents },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      addProduct(newProduct);
+      setSuccess(true);
+      setManualProduct({ title: "", price: "", description: "", image: "", vendor: "Inspire" });
+      setTimeout(() => setSuccess(false), 3000);
+      setActiveTab("manage");
+    } catch (err) {
+      setError("Error al crear producto manual");
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -425,7 +482,78 @@ export default function AdminPage() {
                 Extraer del Proveedor
               </h2>
               
-              <form onSubmit={handleScrape} className="flex flex-col gap-4 mb-4">
+              <div className="flex gap-4 mb-8">
+                <button 
+                  onClick={() => setScrapedData(null)} 
+                  className={cn(
+                    "px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+                    !scrapedData ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-500"
+                  )}
+                >
+                  Importar URL
+                </button>
+                <button 
+                  onClick={() => setScrapedData({ title: "MANUAL", description: "", images: [], vendor: "", url: "", features: [], shippingInfo: [], badges: [] } as any)} 
+                  className={cn(
+                    "px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+                    scrapedData?.title === "MANUAL" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-500"
+                  )}
+                >
+                  Carga Manual
+                </button>
+              </div>
+
+              {scrapedData?.title === "MANUAL" ? (
+                <div className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Nombre del Producto</label>
+                      <Input 
+                        placeholder="Ej: Aceite de Coco Orgánico"
+                        value={manualProduct.title}
+                        onChange={(e) => setManualProduct({...manualProduct, title: e.target.value})}
+                        className="py-6 rounded-2xl border-2"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Precio (en USD)</label>
+                      <Input 
+                        type="number"
+                        placeholder="Ej: 25.00"
+                        value={manualProduct.price}
+                        onChange={(e) => setManualProduct({...manualProduct, price: e.target.value})}
+                        className="py-6 rounded-2xl border-2"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-2">URL de la Imagen</label>
+                    <Input 
+                      placeholder="Pega el link de la foto"
+                      value={manualProduct.image}
+                      onChange={(e) => setManualProduct({...manualProduct, image: e.target.value})}
+                      className="py-6 rounded-2xl border-2"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Descripción Corta</label>
+                    <textarea 
+                      className="w-full p-4 rounded-2xl border-2 border-slate-200 focus:border-emerald-500 focus:outline-none min-h-[100px]"
+                      placeholder="Contanos de qué se trata el producto..."
+                      value={manualProduct.description}
+                      onChange={(e) => setManualProduct({...manualProduct, description: e.target.value})}
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleCreateManualProduct} 
+                    disabled={creating}
+                    className="w-full bg-emerald-600 py-6 font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-emerald-500/20"
+                  >
+                    {creating ? "GUARDANDO..." : "PUBLICAR PRODUCTO"}
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handleScrape} className="flex flex-col gap-4 mb-4">
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex-1">
                     <Input
