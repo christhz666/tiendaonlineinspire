@@ -590,6 +590,7 @@ export default function AdminPage() {
                   </label>
                 </div>
               </form>
+            )}
               
               {error && (
                 <div className="p-4 bg-red-50 border-2 border-red-100 rounded-2xl flex items-center gap-3 text-red-600 font-bold text-sm">
