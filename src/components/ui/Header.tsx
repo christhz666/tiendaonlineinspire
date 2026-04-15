@@ -154,21 +154,7 @@ export function Header() {
                 )}
               </div>
 
-              {/* Cart Button */}
-              <button
-                onClick={toggleCart}
-                className="relative group h-11 px-4 bg-slate-900 text-white rounded-2xl flex items-center gap-3 hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 active:scale-95"
-              >
-                <div className="relative">
-                  <ShoppingCart className="w-5 h-5 transition-transform group-hover:-rotate-12" />
-                  {isMounted && items > 0 && (
-                    <span className="absolute -top-2.5 -right-2.5 w-5 h-5 bg-emerald-500 text-white text-[10px] font-black rounded-full flex items-center justify-center ring-2 ring-slate-900 animate-in zoom-in">
-                      {items}
-                    </span>
-                  )}
-                </div>
-                <span className="hidden sm:block text-xs font-black uppercase tracking-widest">Carrito</span>
-              </button>
+              {/* Hidden Cart for Funnel Model */}
 
               {/* Mobile Menu Button */}
               <button

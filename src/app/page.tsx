@@ -124,10 +124,11 @@ export default function Home() {
                     loop
                     muted
                     playsInline
-                    className="absolute inset-0 w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700"
+                    className="absolute inset-0 w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700 object-center"
+                    style={{ minHeight: '100%', minWidth: '100%' }}
                   />
                   {/* Overlay for better text read if any */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent" />
                 </div>
 
                 {/* Floating Badges */}

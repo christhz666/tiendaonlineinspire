@@ -154,6 +154,7 @@ export default function AdminPage() {
         }],
         options: [{ id: `opt_${Date.now()}`, name: "Variante", values: ["Default"] }],
         priceRange: { minPrice: priceCents, maxPrice: priceCents },
+        externalUrl: manualProduct.image, // Usamos la imagen como fallback o podrías agregar un campo de URL
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -218,6 +219,7 @@ export default function AdminPage() {
         features: scrapedData.features || [],
         shippingInfo: scrapedData.shippingInfo || [],
         badges: scrapedData.badges || [],
+        externalUrl: scrapedData.url,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };

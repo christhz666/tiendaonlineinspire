@@ -36,6 +36,7 @@ export interface Product {
   features?: string[];    // Ej: "Vegano", "Libre de lácteos"
   shippingInfo?: string[]; // Ej: "Envíos en 2-5 días"
   badges?: string[];       // Ej: "Recibe tus productos favoritos cada mes"
+  externalUrl?: string;    // Link a la tienda original (Funnel)
   createdAt: string;
   updatedAt: string;
 }

@@ -228,20 +228,19 @@ export default function ProductPage({ params }: ProductPageProps) {
               </div>
 
               <Button 
-                onClick={handleAddToCart}
-                className="flex-1 py-7 rounded-2xl text-lg font-bold shadow-xl shadow-emerald-900/10 transition-transform active:scale-[0.98]"
+                onClick={() => {
+                  if (product.externalUrl) {
+                    window.open(product.externalUrl, '_blank');
+                  } else {
+                    alert("Lo sentimos, este producto no tiene un link de compra asignado.");
+                  }
+                }}
+                className="flex-1 py-7 rounded-2xl text-lg font-bold shadow-xl shadow-emerald-900/10 transition-transform active:scale-[0.98] bg-slate-900"
               >
-                {addedToCart ? (
-                  <div className="flex items-center gap-2 animate-in fade-in zoom-in">
-                    <Check className="w-6 h-6" />
-                    ¡EN EL CARRITO!
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3">
-                    <ShoppingBag className="w-6 h-6" />
-                    AÑADIR A LA CESTA
-                  </div>
-                )}
+                <div className="flex items-center gap-3">
+                  <ShoppingBag className="w-6 h-6" />
+                  VER EN TIENDA OFICIAL
+                </div>
               </Button>
             </div>
 
