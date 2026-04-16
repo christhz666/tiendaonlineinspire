@@ -73,7 +73,6 @@ export default function AdminPage() {
         body: JSON.stringify({
           url,
           taxRate: includeTax ? 1.18 : 1.0,
-          refCode: affiliate.refCode,
         }),
       });
 
@@ -408,9 +407,10 @@ export default function AdminPage() {
                 Importar Producto
               </h2>
 
-              <div className="p-4 mb-6 bg-blue-50 border border-blue-100 rounded-2xl text-sm text-blue-900">
-                <strong>Tip:</strong> Si pegás la URL sin <code className="bg-white px-2 py-0.5 rounded">sca_ref</code>, el sistema agregará
-                automáticamente tu código de referido: <code className="bg-white px-2 py-0.5 rounded">{affiliate.refCode}</code>
+              <div className="p-4 mb-6 bg-amber-50 border border-amber-100 rounded-2xl text-sm text-amber-900">
+                <strong>Importante:</strong> Pega la URL del producto ya con tu <code className="bg-white px-2 py-0.5 rounded">sca_ref</code> incluido. El sistema NO lo inyecta automáticamente — el link se guarda tal cual.
+                <br />
+                Tu código: <code className="bg-white px-2 py-0.5 rounded">{affiliate.refCode || "(definilo en Mi Perfil Afiliado)"}</code>
               </div>
 
               <div className="flex gap-4 mb-8">

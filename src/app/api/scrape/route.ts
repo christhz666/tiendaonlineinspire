@@ -156,31 +156,14 @@ function extractFeaturesFromHtml(html: string): string[] {
   return features.slice(0, 15);
 }
 
-/** Inject the affiliate ref code (sca_ref + sca_source) if missing. */
-function ensureAffiliateRef(rawUrl: string, refCode?: string): string {
-  if (!rawUrl || !refCode) return rawUrl;
-  try {
-    const url = new URL(rawUrl);
-    if (!url.searchParams.has("sca_ref")) {
-      url.searchParams.set("sca_ref", refCode);
-    }
-    if (!url.searchParams.has("sca_source")) {
-      url.searchParams.set("sca_source", "inspire su vida");
-    }
-    return url.toString();
-  } catch {
-    return rawUrl;
-  }
-}
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    let { url, taxRate, refCode } = body;
+    let { url, taxRate } = body;
 
     const rate = taxRate ? parseFloat(taxRate) : 1.0;
 
-    console.log("[SCRAPE] Received URL:", url, "Tax Rate:", rate, "RefCode:", refCode ? "yes" : "no");
+    console.log("[SCRAPE] Received URL:", url, "Tax Rate:", rate);
 
     if (!url) {
       return NextResponse.json({ error: "URL es requerida" }, { status: 400 });
@@ -193,10 +176,8 @@ export async function POST(request: NextRequest) {
       url = "https://" + url;
     }
 
-    // Auto-inject affiliate ref code if missing (for Inspire product URLs)
-    if (refCode && typeof refCode === "string") {
-      url = ensureAffiliateRef(url, refCode);
-    }
+    // Note: no auto-injection of affiliate ref code — admin provides affiliate links manually
+    // when filling externalUrl on the product.
 
     let parsedUrl: URL;
     try {

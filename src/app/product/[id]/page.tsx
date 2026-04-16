@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useProductByHandle } from "@/stores/productStore";
 import { useCurrencyStore } from "@/stores/currencyStore";
-import { useAffiliateStore, withAffiliateRef } from "@/stores/affiliateStore";
+import { useAffiliateStore } from "@/stores/affiliateStore";
 import { Button } from "@/components/ui/Button";
 import { ShareButton } from "@/components/ui/ShareButton";
 import {
@@ -34,9 +34,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     fetchAffiliate();
   }, [fetchAffiliate]);
 
-  const affiliateUrl = product?.externalUrl
-    ? withAffiliateRef(product.externalUrl, refCode)
-    : "";
+  const affiliateUrl = product?.externalUrl || "";
 
   if (!product) {
     return (

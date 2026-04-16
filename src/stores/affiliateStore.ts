@@ -92,6 +92,14 @@ export const useAffiliateStore = create<AffiliateStore>()(
         set({ ...next });
 
         try {
+          // Debug: log current auth state to diagnose RLS failures
+          const { data: authData } = await supabase.auth.getUser();
+          console.log("[affiliateStore] upsert auth state:", {
+            userId: authData.user?.id,
+            email: authData.user?.email,
+            isSignedIn: !!authData.user,
+          });
+
           const { error } = await supabase
             .from("affiliate_config")
             .upsert(
@@ -132,26 +140,6 @@ export const useAffiliateStore = create<AffiliateStore>()(
     }
   )
 );
-
-/**
- * Build an affiliate product URL by injecting the ref code as sca_ref parameter.
- * If the URL already has sca_ref, it is preserved.
- */
-export function withAffiliateRef(rawUrl: string, refCode: string): string {
-  if (!rawUrl) return rawUrl;
-  try {
-    const url = new URL(rawUrl);
-    if (!url.searchParams.has("sca_ref") && refCode) {
-      url.searchParams.set("sca_ref", refCode);
-    }
-    if (!url.searchParams.has("sca_source")) {
-      url.searchParams.set("sca_source", "inspire su vida");
-    }
-    return url.toString();
-  } catch {
-    return rawUrl;
-  }
-}
 
 /**
  * Format WhatsApp URL for a pre-composed message.

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { useCurrencyStore } from "@/stores/currencyStore";
-import { useAffiliateStore, withAffiliateRef } from "@/stores/affiliateStore";
 import { Button } from "./Button";
 import { ShareButton } from "./ShareButton";
 
@@ -15,11 +14,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const format = useCurrencyStore((state) => state.format);
-  const refCode = useAffiliateStore((state) => state.refCode);
-
-  const affiliateUrl = product.externalUrl
-    ? withAffiliateRef(product.externalUrl, refCode)
-    : "";
+  const affiliateUrl = product.externalUrl || "";
 
   const handleBuyClick = (e: React.MouseEvent) => {
     e.preventDefault();
