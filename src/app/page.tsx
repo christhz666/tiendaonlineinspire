@@ -118,21 +118,19 @@ export default function Home() {
               "relative transition-all duration-1000 delay-300 transform",
               isVisible ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"
             )}>
-              <div className="relative w-full aspect-video group lg:scale-105">
+              <div className="relative w-full aspect-video group">
                 {/* Frame Decor */}
-                <div className="absolute inset-0 border-2 border-emerald-100 rounded-[3rem] -rotate-3 scale-105" />
+                <div className="absolute inset-0 border-2 border-emerald-100 rounded-[3rem] -rotate-3 scale-105 pointer-events-none" />
 
-                <div className="relative h-full bg-slate-100 rounded-[3rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] border-8 border-white">
+                <div className="relative h-full bg-slate-900 rounded-[3rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] border-4 border-white">
                   <video
                     src="/hero-video.mp4"
                     autoPlay
                     loop
                     muted
                     playsInline
-                    className="absolute inset-0 w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700"
+                    className="absolute inset-0 w-full h-full object-contain grayscale-[0.15] group-hover:grayscale-0 transition-all duration-700"
                   />
-                  {/* Overlay for better text read if any */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent pointer-events-none" />
                 </div>
 
                 {/* Floating Badges */}
@@ -167,11 +165,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-30">
-          <span className="text-[10px] font-black uppercase tracking-[0.3em]">Scroll</span>
-          <div className="w-px h-12 bg-gradient-to-b from-slate-900 to-transparent" />
-        </div>
       </section>
 
       {/* Benefits Section */}
