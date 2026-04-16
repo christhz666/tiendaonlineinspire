@@ -19,6 +19,7 @@ export type Database = {
       affiliate_config: {
         Row: {
           affiliate_name: string | null
+          email: string | null
           id: string
           office_url: string | null
           ref_code: string
@@ -29,6 +30,7 @@ export type Database = {
         }
         Insert: {
           affiliate_name?: string | null
+          email?: string | null
           id?: string
           office_url?: string | null
           ref_code: string
@@ -39,6 +41,7 @@ export type Database = {
         }
         Update: {
           affiliate_name?: string | null
+          email?: string | null
           id?: string
           office_url?: string | null
           ref_code?: string

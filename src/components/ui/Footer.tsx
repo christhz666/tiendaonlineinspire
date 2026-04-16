@@ -8,6 +8,7 @@ import { useAffiliateStore, buildWhatsappUrl } from "@/stores/affiliateStore";
 export function Footer() {
   const affiliateName = useAffiliateStore((s) => s.affiliateName);
   const whatsappNumber = useAffiliateStore((s) => s.whatsappNumber);
+  const email = useAffiliateStore((s) => s.email);
   const sponsorUrl = useAffiliateStore((s) => s.sponsorUrl);
   const tagline = useAffiliateStore((s) => s.tagline);
   const fetchAffiliate = useAffiliateStore((s) => s.fetchConfig);
@@ -110,15 +111,22 @@ export function Footer() {
                   </div>
                 </li>
               )}
-              <li className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Mail className="w-4 h-4 text-emerald-500" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">Escribinos</p>
-                  <p className="text-sm text-white font-medium">hola@inspiresuvida.do</p>
-                </div>
-              </li>
+              {email && (
+                <li className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Mail className="w-4 h-4 text-emerald-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">Escribinos</p>
+                    <a
+                      href={`mailto:${email}`}
+                      className="text-sm text-white font-medium hover:text-emerald-400 transition-colors break-all"
+                    >
+                      {email}
+                    </a>
+                  </div>
+                </li>
+              )}
               <li className="flex items-start gap-4">
                 <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center flex-shrink-0">
                   <MapPin className="w-4 h-4 text-emerald-500" />

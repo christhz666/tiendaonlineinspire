@@ -636,13 +636,14 @@ export default function AdminPage() {
 }
 
 function AffiliateProfileTab() {
-  const { sponsorUrl, refCode, affiliateName, whatsappNumber, officeUrl, tagline, updateConfig, error } = useAffiliateStore();
+  const { sponsorUrl, refCode, affiliateName, whatsappNumber, email, officeUrl, tagline, updateConfig, error } = useAffiliateStore();
 
   const [form, setForm] = useState({
     sponsorUrl,
     refCode,
     affiliateName,
     whatsappNumber,
+    email,
     officeUrl,
     tagline,
   });
@@ -651,8 +652,8 @@ function AffiliateProfileTab() {
   const [localError, setLocalError] = useState<string | null>(null);
 
   useEffect(() => {
-    setForm({ sponsorUrl, refCode, affiliateName, whatsappNumber, officeUrl, tagline });
-  }, [sponsorUrl, refCode, affiliateName, whatsappNumber, officeUrl, tagline]);
+    setForm({ sponsorUrl, refCode, affiliateName, whatsappNumber, email, officeUrl, tagline });
+  }, [sponsorUrl, refCode, affiliateName, whatsappNumber, email, officeUrl, tagline]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -713,6 +714,18 @@ function AffiliateProfileTab() {
               className="py-6 rounded-2xl border-2"
             />
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Email de contacto</label>
+          <Input
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            placeholder="tucorreo@gmail.com"
+            className="py-6 rounded-2xl border-2"
+          />
+          <p className="text-xs text-slate-400 ml-2">Aparece en el footer con enlace mailto. Dejá vacío para ocultar.</p>
         </div>
 
         <div className="space-y-2">
