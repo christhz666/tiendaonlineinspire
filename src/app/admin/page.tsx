@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import {
   Globe, Loader2, Check, AlertCircle, ShoppingBag,
-  Trash2, LogOut, Package, Users, ExternalLink
+  Trash2, LogOut, Package, Users, ExternalLink, Building2,
+  Plus, Edit2, X, ArrowUp, ArrowDown
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -11,6 +12,7 @@ import { useProductStore } from "@/stores/productStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useConfigStore, AdminTab } from "@/stores/configStore";
 import { useAffiliateStore } from "@/stores/affiliateStore";
+import { useCompaniesStore, type Company, type CompanyInput } from "@/stores/companiesStore";
 import type { ScrapedProductData } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +23,7 @@ export default function AdminPage() {
   const tabs: { id: AdminTab; icon: typeof Package; label: string }[] = [
     { id: "manage", icon: Package, label: "Productos" },
     { id: "import", icon: Globe, label: "Importar" },
+    { id: "companies", icon: Building2, label: "Empresas" },
     { id: "affiliate", icon: Users, label: "Mi Perfil Afiliado" },
   ];
 
@@ -596,10 +599,364 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* Tab: Empresas */}
+        {activeTab === "companies" && (
+          <CompaniesTab />
+        )}
+
         {/* Tab: Mi Perfil Afiliado */}
         {activeTab === "affiliate" && (
           <AffiliateProfileTab />
         )}
+      </div>
+    </div>
+  );
+}
+
+function CompaniesTab() {
+  const { companies, loading, error, fetchCompanies, addCompany, updateCompany, deleteCompany } = useCompaniesStore();
+  const [isEditing, setIsEditing] = useState<string | null>(null);
+  const [form, setForm] = useState<Partial<CompanyInput>>({
+    slug: "",
+    name: "",
+    description: "",
+    logoUrl: "",
+    heroImageUrl: "",
+    sponsorUrl: "",
+    refCode: "",
+    brandColor: "#10b981",
+    displayOrder: 0,
+    active: true,
+  });
+  const [saving, setSaving] = useState(false);
+
+  // Scraping state
+  const [scrapeUrl, setScrapeUrl] = useState("");
+  const [scraping, setScraping] = useState(false);
+  const [scrapeError, setScrapeError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchCompanies();
+  }, [fetchCompanies]);
+
+  const handleScrape = async () => {
+    if (!scrapeUrl) return;
+    setScraping(true);
+    setScrapeError(null);
+    try {
+      const res = await fetch("/api/scrape", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: scrapeUrl, type: "company" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Error al scrapear");
+      }
+      // Pre-fill form with scraped data
+      setForm({
+        slug: data.slug || "",
+        name: data.name || "",
+        description: data.description || "",
+        logoUrl: data.logoUrl || "",
+        heroImageUrl: data.heroImageUrl || "",
+        sponsorUrl: data.websiteUrl || "",
+        refCode: "",
+        brandColor: data.brandColor || "#10b981",
+        displayOrder: companies.length,
+        active: true,
+      });
+      setScrapeUrl("");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Error desconocido";
+      setScrapeError(msg);
+    } finally {
+      setScraping(false);
+    }
+  };
+
+  const resetForm = () => {
+    setForm({
+      slug: "",
+      name: "",
+      description: "",
+      logoUrl: "",
+      heroImageUrl: "",
+      sponsorUrl: "",
+      refCode: "",
+      brandColor: "#10b981",
+      displayOrder: companies.length,
+      active: true,
+    });
+    setIsEditing(null);
+  };
+
+  const handleEdit = (company: Company) => {
+    setForm({
+      slug: company.slug,
+      name: company.name,
+      description: company.description,
+      logoUrl: company.logoUrl,
+      heroImageUrl: company.heroImageUrl,
+      sponsorUrl: company.sponsorUrl,
+      refCode: company.refCode,
+      brandColor: company.brandColor,
+      displayOrder: company.displayOrder,
+      active: company.active,
+    });
+    setIsEditing(company.id);
+  };
+
+  const handleSave = async () => {
+    if (!form.slug || !form.name || !form.sponsorUrl) return;
+    setSaving(true);
+    try {
+      if (isEditing) {
+        await updateCompany(isEditing, form);
+      } else {
+        await addCompany(form as CompanyInput);
+      }
+      resetForm();
+    } catch (err) {
+      console.error("Error saving company:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("¿Eliminar esta empresa?")) return;
+    try {
+      await deleteCompany(id);
+    } catch (err) {
+      console.error("Error deleting company:", err);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Scrape from URL */}
+      {!isEditing && (
+        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-3xl p-6 shadow-md border border-emerald-100">
+          <h3 className="text-lg font-bold text-emerald-800 mb-4 flex items-center gap-2">
+            <Globe className="w-5 h-5" />
+            Scrapear Empresa desde URL
+          </h3>
+          <div className="flex gap-3">
+            <Input
+              value={scrapeUrl}
+              onChange={(e) => setScrapeUrl(e.target.value)}
+              placeholder="https://www.empresa.com o www.empresa.com"
+              className="flex-1 py-5 rounded-xl border-2 border-emerald-200 font-mono text-sm"
+            />
+            <Button
+              onClick={handleScrape}
+              disabled={scraping || !scrapeUrl}
+              className="bg-emerald-600 hover:bg-emerald-700 py-5 px-6 font-black uppercase tracking-widest text-xs rounded-xl"
+            >
+              {scraping ? <Loader2 className="w-4 h-4 animate-spin" /> : "SCRAPEAR"}
+            </Button>
+          </div>
+          {scrapeError && (
+            <div className="mt-3 flex items-center gap-2 text-red-600 text-sm">
+              <AlertCircle className="w-4 h-4" />
+              {scrapeError}
+            </div>
+          )}
+          <p className="mt-3 text-xs text-emerald-600">
+            Ingresá la URL del sitio web de la empresa y te completamos los datos automáticamente.
+          </p>
+        </div>
+      )}
+
+      <div className="bg-white rounded-3xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100">
+        <h3 className="text-lg font-bold text-slate-800 mb-4">
+          {isEditing ? "Editar Empresa" : "Nueva Empresa"}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Slug (URL) *</label>
+            <Input
+              value={form.slug}
+              onChange={(e) => setForm({ ...form, slug: e.target.value })}
+              placeholder="inspire"
+              className="py-4 rounded-xl border-2 font-mono text-sm"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Nombre *</label>
+            <Input
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="Inspire"
+              className="py-4 rounded-xl border-2"
+            />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Descripción</label>
+            <Input
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="Breve descripción de la empresa"
+              className="py-4 rounded-xl border-2"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase text-slate-400 ml-2">URL Logo</label>
+            <Input
+              value={form.logoUrl}
+              onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
+              placeholder="https://..."
+              className="py-4 rounded-xl border-2 font-mono text-xs"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase text-slate-400 ml-2">URL Hero Image</label>
+            <Input
+              value={form.heroImageUrl}
+              onChange={(e) => setForm({ ...form, heroImageUrl: e.target.value })}
+              placeholder="https://..."
+              className="py-4 rounded-xl border-2 font-mono text-xs"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Link de Registro *</label>
+            <Input
+              value={form.sponsorUrl}
+              onChange={(e) => setForm({ ...form, sponsorUrl: e.target.value })}
+              placeholder="https://..."
+              className="py-4 rounded-xl border-2 font-mono text-xs"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Código de Referido</label>
+            <Input
+              value={form.refCode}
+              onChange={(e) => setForm({ ...form, refCode: e.target.value })}
+              placeholder="11048224.XXXXXXXX"
+              className="py-4 rounded-xl border-2 font-mono text-xs"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Color de Marca</label>
+            <div className="flex gap-2">
+              <Input
+                type="color"
+                value={form.brandColor}
+                onChange={(e) => setForm({ ...form, brandColor: e.target.value })}
+                className="w-16 h-12 p-1 rounded-xl border-2"
+              />
+              <Input
+                value={form.brandColor}
+                onChange={(e) => setForm({ ...form, brandColor: e.target.value })}
+                placeholder="#10b981"
+                className="flex-1 py-4 rounded-xl border-2 font-mono text-sm"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Orden</label>
+            <Input
+              type="number"
+              value={form.displayOrder}
+              onChange={(e) => setForm({ ...form, displayOrder: parseInt(e.target.value) || 0 })}
+              className="py-4 rounded-xl border-2"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-4 mt-4">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.active}
+              onChange={(e) => setForm({ ...form, active: e.target.checked })}
+              className="w-5 h-5 rounded border-2 text-emerald-600 focus:ring-emerald-500"
+            />
+            <span className="text-sm font-medium text-slate-700">Activa</span>
+          </label>
+        </div>
+        <div className="flex gap-3 mt-6">
+          <Button
+            onClick={handleSave}
+            disabled={saving || !form.slug || !form.name || !form.sponsorUrl}
+            className="bg-emerald-600 hover:bg-emerald-700 py-5 px-6 font-black uppercase tracking-widest text-xs rounded-2xl"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : isEditing ? "GUARDAR" : "CREAR"}
+          </Button>
+          {isEditing && (
+            <Button
+              variant="outline"
+              onClick={resetForm}
+              className="py-5 px-6 font-black uppercase tracking-widest text-xs rounded-2xl border-2"
+            >
+              CANCELAR
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3 text-red-700">
+          <AlertCircle className="w-5 h-5" />
+          <span className="text-sm">{error}</span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-4">
+        {companies.map((company) => (
+          <div
+            key={company.id}
+            className="bg-white rounded-2xl p-5 shadow-md border border-slate-100 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-4">
+              {company.logoUrl ? (
+                <img src={company.logoUrl} alt={company.name} className="w-12 h-12 rounded-xl object-cover" />
+              ) : (
+                <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
+                  <Building2 className="w-6 h-6 text-slate-400" />
+                </div>
+              )}
+              <div>
+                <h4 className="font-bold text-slate-800">{company.name}</h4>
+                <p className="text-xs text-slate-500">/{company.slug}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: company.brandColor }}
+                  />
+                  <span className="text-xs text-slate-400">Ord: {company.displayOrder}</span>
+                  {!company.active && (
+                    <span className="text-[10px] px-2 py-0.5 bg-slate-200 text-slate-600 rounded-full">Inactiva</span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleEdit(company)}
+                className="text-slate-600 hover:text-emerald-600"
+              >
+                <Edit2 className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleDelete(company.id)}
+                className="text-slate-600 hover:text-red-600"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

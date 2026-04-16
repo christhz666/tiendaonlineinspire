@@ -7,10 +7,134 @@ export const dynamic = "force-dynamic";
 
 import { CURRENCY_MAP, syncLatestRates } from "@/lib/currency";
 
+export interface ScrapedCompanyData {
+  name: string;
+  description: string;
+  logoUrl: string;
+  heroImageUrl: string;
+  brandColor: string;
+  websiteUrl: string;
+}
+
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+async function scrapeCompanyData(url: string): Promise<ScrapedCompanyData | null> {
+  try {
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "es,en-US;q=0.7,en;q=0.3",
+      },
+    });
+
+    if (!response.ok) return null;
+
+    const html = await response.text();
+    const cheerio = await import("cheerio");
+    const $ = cheerio.load(html);
+
+    const normalizeImage = (src: string, baseUrl: string): string => {
+      if (!src) return "";
+      if (src.startsWith("//")) return `https:${src}`;
+      if (src.startsWith("http")) return src;
+      if (src.startsWith("/")) {
+        const url = new URL(baseUrl);
+        return `${url.protocol}//${url.host}${src}`;
+      }
+      return src;
+    };
+
+    // Extraer nombre de la empresa
+    const name =
+      $('meta[property="og:site_name"]').attr("content") ||
+      $('meta[name="application-name"]').attr("content") ||
+      $("title").text()?.split(/[-|]/)[0]?.trim() ||
+      $("h1").first().text()?.trim() ||
+      $("[class*='logo'] img").first().attr("alt") ||
+      "";
+
+    // Extraer descripción
+    const description =
+      $('meta[property="og:description"]').attr("content") ||
+      $('meta[name="description"]').attr("content") ||
+      "";
+
+    // Extraer logo
+    let logoUrl = "";
+    const logoSelectors = [
+      'link[rel="icon"][sizes="192x192"]',
+      'link[rel="icon"][sizes="180x180"]',
+      'link[rel="apple-touch-icon"]',
+      'link[rel="icon"]',
+      'meta[property="og:logo"]',
+      '[class*="logo"] img',
+      'header img[alt*="logo" i]',
+    ];
+    for (const sel of logoSelectors) {
+      const el = $(sel).first();
+      const src = el.attr("href") || el.attr("content") || el.attr("src");
+      if (src) {
+        logoUrl = normalizeImage(src, url);
+        break;
+      }
+    }
+
+    // Extraer hero image
+    let heroImageUrl = "";
+    const heroSelectors = [
+      'meta[property="og:image"]',
+      'meta[name="twitter:image"]',
+      '[class*="hero"] img',
+      '[class*="banner"] img',
+      '.slider img',
+      'main img',
+      'header img',
+    ];
+    for (const sel of heroSelectors) {
+      const el = $(sel).first();
+      const src = el.attr("content") || el.attr("src") || el.attr("data-src");
+      if (src && src !== logoUrl) {
+        heroImageUrl = normalizeImage(src, url);
+        break;
+      }
+    }
+
+    // Intentar extraer color de marca del CSS o meta tags
+    let brandColor = "#10b981"; // default emerald
+    const themeColor = $('meta[name="theme-color"]').attr("content");
+    if (themeColor && themeColor.startsWith("#")) {
+      brandColor = themeColor;
+    }
+
+    if (!name) return null;
+
+    return {
+      name: name.trim().substring(0, 100),
+      description: description.trim().substring(0, 500),
+      logoUrl,
+      heroImageUrl,
+      brandColor,
+      websiteUrl: url,
+    };
+  } catch (e) {
+    console.error("[SCRAPE] Company scrape failed:", e);
+    return null;
+  }
+}
+
 async function parsePrice(
   priceStr: string | undefined, 
   taxMultiplier: number = 1.0,
-  currencyMap: Record<string, any> = CURRENCY_MAP
+  currencyMap: Record<string, { rate: number }> = CURRENCY_MAP as Record<string, { rate: number }>
 ): Promise<number | undefined> {
   if (!priceStr) return undefined;
   const cleaned = priceStr.replace(/[^0-9.,]/g, "").replace(",", ".");
@@ -159,19 +283,44 @@ function extractFeaturesFromHtml(html: string): string[] {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    let { url, taxRate } = body;
+    const { taxRate, type = "product" } = body;
+    let { url } = body;
 
     const rate = taxRate ? parseFloat(taxRate) : 1.0;
 
-    console.log("[SCRAPE] Received URL:", url, "Tax Rate:", rate);
+    console.log("[SCRAPE] Received URL:", url, "Type:", type, "Tax Rate:", rate);
 
     if (!url) {
       return NextResponse.json({ error: "URL es requerida" }, { status: 400 });
     }
 
+    // --- SCRAPE EMPRESA ---
+    if (type === "company") {
+      const normalizedUrl = !url.startsWith("http://") && !url.startsWith("https://")
+        ? "https://" + url
+        : url;
+
+      const companyData = await scrapeCompanyData(normalizedUrl);
+      if (!companyData) {
+        return NextResponse.json(
+          { error: "No se pudo extraer información de la empresa. Verificá que la URL sea correcta." },
+          { status: 422 }
+        );
+      }
+
+      // Generar slug automáticamente del nombre
+      const slug = generateSlug(companyData.name);
+
+      return NextResponse.json({
+        ...companyData,
+        slug,
+      });
+    }
+
     // Sync currency rates ONCE per scrape request (not per variant)
     await syncLatestRates();
 
+    // Normalize URL
     if (!url.startsWith("http://") && !url.startsWith("https://")) {
       url = "https://" + url;
     }

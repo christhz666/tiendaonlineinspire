@@ -10,6 +10,7 @@ import {
 import { useFeaturedProducts, useProductStore } from "@/stores/productStore";
 import { useAffiliateStore } from "@/stores/affiliateStore";
 import { ProductCard } from "@/components/ui/ProductCard";
+import { CompanyCarousel } from "@/components/ui/CompanyCarousel";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
@@ -27,145 +28,8 @@ export default function Home() {
 
   return (
     <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="relative min-h-[95vh] flex items-center overflow-hidden bg-white">
-        {/* Dynamic Background */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[10%] right-[5%] w-96 h-96 bg-emerald-100 rounded-full blur-3xl opacity-50 animate-pulse" />
-          <div className="absolute bottom-[10%] left-[5%] w-72 h-72 bg-amber-100 rounded-full blur-3xl opacity-40 animate-pulse delay-1000" />
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Text Content */}
-            <div className={cn(
-              "text-center lg:text-left transition-all duration-1000 transform",
-              isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-            )}>
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100/50 backdrop-blur-sm rounded-full text-emerald-700 font-bold text-xs mb-8 uppercase tracking-[0.2em] border border-emerald-200">
-                <Leaf className="w-3.5 h-3.5" />
-                Pure & Natural Selection
-              </div>
-              
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-slate-900 leading-tight mb-8">
-                Inspiramos tu <br />
-                <span className="relative text-emerald-600">
-                  Bienestar
-                  <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 100 10" preserveAspectRatio="none">
-                    <path d="M0 5 Q 25 0, 50 5 T 100 5" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-200" />
-                  </svg>
-                </span>
-                <br />diario
-              </h1>
-              
-              <p className="text-lg sm:text-2xl text-slate-500 mb-10 max-w-xl mx-auto lg:mx-0 font-medium leading-relaxed">
-                Descubre la pureza de la naturaleza con productos premium seleccionados para potenciar tu vitalidad y salud.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-5 justify-center lg:justify-start">
-                <Link 
-                  href="#products" 
-                  className="group relative flex items-center justify-center gap-3 px-10 py-5 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 transition-all shadow-2xl shadow-slate-900/20 active:scale-95 overflow-hidden"
-                >
-                  <div className="absolute inset-x-0 bottom-0 h-1 bg-emerald-500 transition-transform translate-y-full group-hover:translate-y-0" />
-                  <ShoppingBag className="w-5 h-5 transition-transform group-hover:-translate-y-1" />
-                  EXPLORAR CATÁLOGO
-                  <ArrowRight className="w-5 h-5 ml-1 transition-transform group-hover:translate-x-1" />
-                </Link>
-                <Link 
-                  href="/oportunidad" 
-                  className="flex items-center justify-center gap-3 px-10 py-5 bg-white border-2 border-emerald-200 text-emerald-700 font-black rounded-2xl hover:border-emerald-500 hover:bg-emerald-50 transition-all active:scale-95"
-                >
-                  <Rocket className="w-5 h-5" />
-                  SER EMPRESARIO
-                </Link>
-              </div>
-
-              {/* Stats & Trust */}
-              <div className="flex flex-wrap gap-8 mt-16 pt-10 border-t border-slate-100 justify-center lg:justify-start">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100 text-emerald-600">
-                    <Award className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="font-black text-slate-900 leading-none">100%</p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Orgánico</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100 text-blue-600">
-                    <Truck className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="font-black text-slate-900 leading-none">24-48h</p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Envío Nacional</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100 text-amber-500">
-                    <Zap className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="font-black text-slate-900 leading-none">5K+</p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ventas Exitosas</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Hero Image / Video Container */}
-            <div className={cn(
-              "relative transition-all duration-1000 delay-300 transform",
-              isVisible ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"
-            )}>
-              <div className="relative w-full aspect-video group">
-                {/* Frame Decor */}
-                <div className="absolute inset-0 border-2 border-emerald-100 rounded-[3rem] -rotate-3 scale-105 pointer-events-none" />
-
-                <div className="relative h-full bg-slate-900 rounded-[3rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] border-4 border-white">
-                  <video
-                    src="/hero-video.mp4"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="absolute inset-0 w-full h-full object-contain grayscale-[0.15] group-hover:grayscale-0 transition-all duration-700"
-                  />
-                </div>
-
-                {/* Floating Badges */}
-                <div className="absolute -top-6 -right-6 bg-white p-6 rounded-3xl shadow-2xl border border-slate-100 animate-bounce transition-all hover:scale-110">
-                  <div className="flex items-center gap-4">
-                    <div className="relative w-12 h-12">
-                      <div className="absolute inset-0 bg-amber-400 rounded-full animate-ping opacity-20" />
-                      <div className="relative w-12 h-12 bg-amber-400 rounded-full flex items-center justify-center">
-                        <Star className="w-6 h-6 text-white fill-current" />
-                      </div>
-                    </div>
-                    <div>
-                      <p className="font-black text-slate-900 text-xl leading-none">4.9/5</p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Satisfaction Rate</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="absolute -bottom-10 -left-6 bg-white/80 backdrop-blur-xl p-5 rounded-3xl shadow-2xl border border-white/50 animate-float">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
-                      <Heart className="w-7 h-7" />
-                    </div>
-                    <div className="pr-4">
-                      <p className="font-black text-slate-900 leading-none">Healthy Choice</p>
-                      <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-[0.2em] mt-1">Confirmed</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </section>
+      {/* Hero Section — Carousel multi-empresa */}
+      <CompanyCarousel />
 
       {/* Benefits Section */}
       <section className="py-24 bg-slate-900 text-white relative overflow-hidden">

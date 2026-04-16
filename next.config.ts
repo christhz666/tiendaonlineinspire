@@ -41,7 +41,21 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "**.shopifycdn.com",
-      }
+      },
+      // Squarespace (and other common hosts)
+      {
+        protocol: "https",
+        hostname: "**.squarespace-cdn.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.squarespace.com",
+      },
+      // Wildcard for any HTTPS image (use with caution in production)
+      {
+        protocol: "https",
+        hostname: "**",
+      },
     ],
   },
 };

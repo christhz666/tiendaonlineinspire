@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type AdminTab = "manage" | "import" | "affiliate";
+export type AdminTab = "manage" | "import" | "affiliate" | "companies";
 
 interface ConfigStore {
   activeTab: AdminTab;
