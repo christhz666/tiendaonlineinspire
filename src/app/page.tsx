@@ -208,11 +208,11 @@ export default function Home() {
                 Oportunidad de Negocio
               </div>
               <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight mb-6">
-                ¿Querés hacer más que <br />
+                ¿Quieres hacer más que <br />
                 <span className="underline decoration-4 underline-offset-8 decoration-amber-300">solo comprar</span>?
               </h2>
               <p className="text-lg sm:text-xl text-emerald-50 mb-8 leading-relaxed max-w-xl">
-                Convertite en empresario Inspire y construí tu propio negocio con productos premium, comisiones atractivas y un equipo que te acompaña.
+                Conviértete en empresario Inspire y construye tu propio negocio con productos premium, comisiones atractivas y un equipo que te acompaña.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
@@ -320,7 +320,7 @@ export default function Home() {
             <span className="text-emerald-400 underline decoration-4 underline-offset-8 decoration-emerald-500/40">una misma visión.</span>
           </h2>
           <p className="text-xl sm:text-2xl text-slate-300 mb-12 font-medium opacity-90 max-w-2xl mx-auto">
-            Comprá lo que mejora tu vida, o construí un negocio que transforma la de otros.
+            Compra lo que mejora tu vida, o construye un negocio que transforma la de otros.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

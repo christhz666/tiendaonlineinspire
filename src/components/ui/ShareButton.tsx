@@ -41,7 +41,7 @@ export function ShareButton({
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  const message = `¡Mirá este producto de Inspire que te puede interesar! 🌿\n${title}\n${url}`;
+  const message = `¡Mira este producto de Inspire que te puede interesar! 🌿\n${title}\n${url}`;
   const encodedUrl = encodeURIComponent(url);
 
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;

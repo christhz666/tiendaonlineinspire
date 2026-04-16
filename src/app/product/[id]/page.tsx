@@ -185,7 +185,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                   <p className="font-black text-slate-900 text-sm leading-tight mb-1">¿Más que cliente? Empresario.
                   </p>
                   <p className="text-xs text-slate-600 mb-3 leading-relaxed">
-                    Comprá estos productos con descuento y ganá comisiones vendiéndolos.
+                    Compra estos productos con descuento y gana comisiones vendiéndolos.
                   </p>
                   <a
                     href={sponsorUrl}

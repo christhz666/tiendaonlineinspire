@@ -117,7 +117,7 @@ export function Footer() {
                     <Mail className="w-4 h-4 text-emerald-500" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">Escribinos</p>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">Escríbenos</p>
                     <a
                       href={`mailto:${email}`}
                       className="text-sm text-white font-medium hover:text-emerald-400 transition-colors break-all"
@@ -147,7 +147,7 @@ export function Footer() {
                 <h4 className="text-emerald-400 font-black uppercase tracking-widest text-xs">Ser Empresario</h4>
               </div>
               <p className="text-slate-400 text-xs leading-relaxed mb-4">
-                Sumate al equipo Inspire. Comisiones, productos premium y formación.
+                Súmate al equipo Inspire. Comisiones, productos premium y formación.
               </p>
               <a
                 href={sponsorUrl}

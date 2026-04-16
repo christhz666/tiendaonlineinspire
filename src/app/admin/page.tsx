@@ -15,10 +15,8 @@ import type { ScrapedProductData } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export default function AdminPage() {
-  const { isAuthenticated, user, login, logout } = useAuthStore();
+  const { isAuthenticated, user, loading: authLoading, logout } = useAuthStore();
   const { activeTab, setActiveTab } = useConfigStore();
-  const [password, setPassword] = useState("");
-  const [loginError, setLoginError] = useState("");
 
   const tabs: { id: AdminTab; icon: typeof Package; label: string }[] = [
     { id: "manage", icon: Package, label: "Productos" },
@@ -57,15 +55,6 @@ export default function AdminPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (login(password)) {
-      setLoginError("");
-    } else {
-      setLoginError("Contraseña incorrecta");
-    }
-  };
 
   const handleScrape = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +98,7 @@ export default function AdminPage() {
 
   const handleCreateManualProduct = async () => {
     if (!manualProduct.title || !manualProduct.price || !manualProduct.image) {
-      setError("Completá los campos obligatorios (Nombre, Precio e Imagen)");
+      setError("Completa los campos obligatorios (Nombre, Precio e Imagen)");
       return;
     }
 
@@ -237,31 +226,12 @@ export default function AdminPage() {
     return `$${(price / 100).toFixed(2)}`;
   };
 
-  if (!isAuthenticated) {
+  // Middleware enforces auth + admin role before reaching this page.
+  // This gate only covers the brief window while the client hydrates the session.
+  if (authLoading || !isAuthenticated) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-lg border border-slate-200">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-slate-900">Acceso Admin</h2>
-            <p className="text-slate-500 mt-2">Ingresá tu contraseña para continuar</p>
-          </div>
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div>
-              <Input
-                type="password"
-                placeholder="Contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full"
-              />
-              {loginError && <p className="text-red-500 text-sm mt-2">{loginError}</p>}
-            </div>
-            <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3">
-              Ingresar al Panel
-            </Button>
-          </form>
-        </div>
+      <div className="min-h-[80vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
       </div>
     );
   }
@@ -278,7 +248,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex flex-col items-end">
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sesión Actual</span>
-              <span className="text-sm font-black text-emerald-600 uppercase tracking-tighter">{user?.role}</span>
+              <span className="text-sm font-black text-emerald-600 uppercase tracking-tighter">{user?.username}</span>
             </div>
             <Button variant="outline" onClick={logout} className="text-slate-600 border-2 border-slate-200 hover:bg-slate-100 md:w-auto w-full flex items-center justify-center font-bold">
               <LogOut className="w-4 h-4 mr-2" />
@@ -407,7 +377,7 @@ export default function AdminPage() {
                         </td>
                         <td className="p-6 text-right space-x-2">
                           <button
-                            onClick={() => window.confirm("¿Seguro querés borrarlo?") && deleteProduct(p.id)}
+                            onClick={() => window.confirm("¿Seguro quieres borrarlo?") && deleteProduct(p.id)}
                             className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
                           >
                             <Trash2 className="w-5 h-5" />
@@ -490,7 +460,7 @@ export default function AdminPage() {
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase text-slate-400 ml-2">URL de la Imagen</label>
                     <Input
-                      placeholder="Pegá el link de la foto"
+                      placeholder="Pega el link de la foto"
                       value={manualProduct.image}
                       onChange={(e) => setManualProduct({ ...manualProduct, image: e.target.value })}
                       className="py-6 rounded-2xl border-2"
@@ -528,7 +498,7 @@ export default function AdminPage() {
                     <div className="flex-1">
                       <Input
                         type="url"
-                        placeholder="Pegá la URL del producto Inspire"
+                        placeholder="Pega la URL del producto Inspire"
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
                         required
@@ -676,7 +646,7 @@ function AffiliateProfileTab() {
           <Users className="w-8 h-8 text-emerald-600" />
           Mi Perfil Afiliado
         </h2>
-        <p className="text-slate-500 mt-2 font-medium">Configurá tus links únicos de Inspire. Todo el sitio se actualiza automáticamente.</p>
+        <p className="text-slate-500 mt-2 font-medium">Configura tus links únicos de Inspire. Todo el sitio se actualiza automáticamente.</p>
       </div>
 
       <div className="p-10 space-y-8">
@@ -725,7 +695,7 @@ function AffiliateProfileTab() {
             placeholder="tucorreo@gmail.com"
             className="py-6 rounded-2xl border-2"
           />
-          <p className="text-xs text-slate-400 ml-2">Aparece en el footer con enlace mailto. Dejá vacío para ocultar.</p>
+          <p className="text-xs text-slate-400 ml-2">Aparece en el footer con enlace mailto. Deja vacío para ocultar.</p>
         </div>
 
         <div className="space-y-2">
@@ -748,7 +718,7 @@ function AffiliateProfileTab() {
             placeholder="https://www.oficina.rd.inspiretienda.com/register?ref=..."
             className="py-6 rounded-2xl border-2 font-mono text-xs"
           />
-          <p className="text-xs text-slate-400 ml-2">Link que usarán las personas para registrarse como afiliados debajo tuyo.</p>
+          <p className="text-xs text-slate-400 ml-2">Link que usarán las personas para registrarse como afiliados en tu red.</p>
         </div>
 
         <div className="space-y-2">

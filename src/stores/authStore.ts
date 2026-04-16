@@ -1,53 +1,88 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+"use client";
 
-interface User {
+import { create } from "zustand";
+import { supabase } from "@/lib/supabase";
+
+interface AuthUser {
   id: string;
+  username: string;
   role: "admin";
 }
 
 interface AuthStore {
+  user: AuthUser | null;
   isAuthenticated: boolean;
-  user: User | null;
-  login: (password: string) => boolean;
-  logout: () => void;
+  loading: boolean;
+  initialize: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
-// Simple hash function for demo (use bcrypt in production)
-function simpleHash(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  return Math.abs(hash).toString(16);
-}
+let initPromise: Promise<void> | null = null;
 
-export const useAuthStore = create<AuthStore>()(
-  persist(
-    (set) => ({
-      isAuthenticated: false,
-      user: null,
-      login: (password: string) => {
-        const inputHash = simpleHash(password);
+export const useAuthStore = create<AuthStore>((set) => ({
+  user: null,
+  isAuthenticated: false,
+  loading: true,
 
-        // Admin password from env or fallback (for development only)
-        const adminHash = process.env.NEXT_PUBLIC_ADMIN_PASSWORD_HASH
-          ? process.env.NEXT_PUBLIC_ADMIN_PASSWORD_HASH
-          : simpleHash("@Cristopher7.0930"); // Fallback for dev, remove in prod
+  initialize: async () => {
+    if (initPromise) return initPromise;
 
-        if (inputHash === adminHash) {
-          set({ isAuthenticated: true, user: { id: "admin", role: "admin" } });
-          return true;
+    initPromise = (async () => {
+      try {
+        const {
+          data: { user: authUser },
+        } = await supabase.auth.getUser();
+
+        if (!authUser) {
+          set({ user: null, isAuthenticated: false, loading: false });
+          return;
         }
 
-        return false;
-      },
-      logout: () => set({ isAuthenticated: false, user: null }),
-    }),
-    {
-      name: "auth-storage",
+        const { data: adminRow } = await supabase
+          .from("admin_users")
+          .select("id, username")
+          .eq("id", authUser.id)
+          .maybeSingle();
+
+        if (!adminRow) {
+          set({ user: null, isAuthenticated: false, loading: false });
+          return;
+        }
+
+        set({
+          user: {
+            id: authUser.id,
+            username: adminRow.username,
+            role: "admin",
+          },
+          isAuthenticated: true,
+          loading: false,
+        });
+      } catch (err) {
+        console.error("[authStore] init error:", err);
+        set({ user: null, isAuthenticated: false, loading: false });
+      } finally {
+        initPromise = null;
+      }
+    })();
+
+    return initPromise;
+  },
+
+  logout: async () => {
+    await supabase.auth.signOut();
+    set({ user: null, isAuthenticated: false });
+    if (typeof window !== "undefined") {
+      window.location.href = "/admin/login";
     }
-  )
-);
+  },
+}));
+
+// Auto-initialize on the client + listen for auth changes
+if (typeof window !== "undefined") {
+  useAuthStore.getState().initialize();
+
+  supabase.auth.onAuthStateChange(() => {
+    useAuthStore.getState().initialize();
+  });
+}

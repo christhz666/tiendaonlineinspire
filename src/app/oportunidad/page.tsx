@@ -14,17 +14,17 @@ const BENEFITS = [
   {
     icon: DollarSign,
     title: "Comisiones Atractivas",
-    desc: "Ganá por cada venta que hagas y por el equipo que construyas debajo tuyo. Ingreso residual real.",
+    desc: "Gana por cada venta que hagas y por el equipo que construyas en tu red. Ingreso residual real.",
   },
   {
     icon: Clock,
     title: "Flexibilidad Total",
-    desc: "Trabajá desde cualquier lugar, a tu ritmo. Vos decidís cuánto tiempo invertir cada día.",
+    desc: "Trabaja desde cualquier lugar, a tu ritmo. Tú decides cuánto tiempo invertir cada día.",
   },
   {
     icon: Award,
     title: "Productos Premium",
-    desc: "Representás una marca con productos 100% naturales, respaldados científicamente y con alta recompra.",
+    desc: "Representas una marca con productos 100% naturales, respaldados científicamente y con alta recompra.",
   },
   {
     icon: Users,
@@ -36,30 +36,30 @@ const BENEFITS = [
 const STEPS = [
   {
     num: "01",
-    title: "Registrate como empresario",
-    desc: "Hacé clic en el botón de registro y completá tus datos. Automáticamente quedás en mi equipo.",
+    title: "Regístrate como empresario",
+    desc: "Haz clic en el botón de registro y completa tus datos. Automáticamente quedas en mi equipo.",
   },
   {
     num: "02",
-    title: "Accedé a tu kit de inicio",
-    desc: "Recibís tu oficina virtual, material de capacitación y productos para arrancar.",
+    title: "Accede a tu kit de inicio",
+    desc: "Recibes tu oficina virtual, material de capacitación y productos para arrancar.",
   },
   {
     num: "03",
-    title: "Compartí productos y oportunidad",
-    desc: "Usá tu link único para vender productos y reclutar más empresarios en tu red.",
+    title: "Comparte productos y oportunidad",
+    desc: "Usa tu link único para vender productos y reclutar más empresarios en tu red.",
   },
   {
     num: "04",
-    title: "Crecé y ganá",
-    desc: "Construí tu propio negocio con comisiones por ventas directas y bonos por tu equipo.",
+    title: "Crece y gana",
+    desc: "Construye tu propio negocio con comisiones por ventas directas y bonos por tu equipo.",
   },
 ];
 
 const FAQ = [
   {
     q: "¿Necesito experiencia previa en ventas?",
-    a: "Para nada. Inspire cuenta con un sistema de formación completo para principiantes. Si vos aprendiste a usar WhatsApp, podés hacer esto.",
+    a: "Para nada. Inspire cuenta con un sistema de formación completo para principiantes. Si tú aprendiste a usar WhatsApp, puedes hacer esto.",
   },
   {
     q: "¿Cuánto cuesta registrarse?",
@@ -91,7 +91,7 @@ export default function OportunidadPage() {
     fetchConfig();
   }, [fetchConfig]);
 
-  const whatsappMessage = `Hola ${affiliateName}! Me interesa conocer más sobre la oportunidad de negocio de Inspire. ¿Podés contarme más?`;
+  const whatsappMessage = `Hola ${affiliateName}! Me interesa conocer más sobre la oportunidad de negocio de Inspire. ¿Puedes contarme más?`;
   const whatsappUrl = whatsappNumber
     ? buildWhatsappUrl(whatsappNumber, whatsappMessage)
     : "#";
@@ -114,12 +114,12 @@ export default function OportunidadPage() {
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-tight mb-8">
-              Convertite en <br />
+              Conviértete en <br />
               <span className="text-emerald-400">empresario Inspire</span>
             </h1>
 
             <p className="text-lg sm:text-2xl text-slate-300 mb-10 max-w-2xl font-medium leading-relaxed">
-              {tagline || "No solo comprás productos. Construís tu propio negocio con una marca premium de bienestar."}
+              {tagline || "No solo compras productos. Construyes tu propio negocio con una marca premium de bienestar."}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
@@ -257,7 +257,7 @@ export default function OportunidadPage() {
               Preguntas Frecuentes
             </div>
             <h2 className="text-4xl sm:text-5xl font-black text-slate-900">
-              Antes de empezar, seguro tenés dudas
+              Antes de empezar, seguro tienes dudas
             </h2>
           </div>
 
@@ -299,10 +299,10 @@ export default function OportunidadPage() {
           <h2 className="text-4xl sm:text-6xl font-black text-white mb-8 leading-tight">
             Tu futuro no se construye solo.
             <br />
-            <span className="underline decoration-4 underline-offset-8 decoration-white/40">Empezá hoy.</span>
+            <span className="underline decoration-4 underline-offset-8 decoration-white/40">Empieza hoy.</span>
           </h2>
           <p className="text-xl sm:text-2xl text-emerald-100 mb-12 font-medium opacity-90 max-w-2xl mx-auto">
-            Sumate a mi equipo. Te voy a acompañar en cada paso.
+            Súmate a mi equipo. Te voy a acompañar en cada paso.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
