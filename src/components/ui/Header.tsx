@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, Menu, X, Leaf, ChevronDown, Bell, Search, User } from "lucide-react";
+import { Menu, X, Leaf, ChevronDown, Bell, Search, User, Rocket, MessageCircle } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useCartStore, useCartTotal } from "@/stores/cartStore";
 import { useCurrencyStore } from "@/stores/currencyStore";
 import { useAuthStore } from "@/stores/authStore";
+import { useAffiliateStore, buildWhatsappUrl } from "@/stores/affiliateStore";
 import { CURRENCY_MAP } from "@/lib/currency";
 import type { CurrencyInfo } from "@/lib/currency";
 import { cn } from "@/lib/utils";
@@ -16,19 +16,25 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   
-  const { toggleCart } = useCartStore();
-  const { items } = useCartTotal();
   const { currency, setCurrency } = useCurrencyStore();
   const { isAuthenticated } = useAuthStore();
+  const whatsappNumber = useAffiliateStore((state) => state.whatsappNumber);
+  const affiliateName = useAffiliateStore((state) => state.affiliateName);
+  const fetchAffiliate = useAffiliateStore((state) => state.fetchConfig);
 
   useEffect(() => {
     setIsMounted(true);
+    fetchAffiliate();
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [fetchAffiliate]);
+
+  const whatsappUrl = whatsappNumber
+    ? buildWhatsappUrl(whatsappNumber, `Hola ${affiliateName || ""}! Te escribo desde tu catálogo Inspire.`)
+    : "#";
 
   const uniqueCurrencies = Object.values(CURRENCY_MAP).filter(
     (c, idx, arr) => arr.findIndex((x) => x.code === c.code) === idx
@@ -88,16 +94,11 @@ export function Header() {
                 Productos
               </Link>
               <Link
-                href="/admin"
-                className={cn(
-                  "px-5 py-2 text-sm font-bold rounded-xl transition-all flex items-center gap-2",
-                  isAuthenticated 
-                    ? "bg-emerald-50 text-emerald-700" 
-                    : "text-slate-600 hover:text-emerald-700 hover:bg-white"
-                )}
+                href="/oportunidad"
+                className="px-5 py-2 text-sm font-bold text-emerald-700 hover:bg-emerald-50 rounded-xl transition-all flex items-center gap-2"
               >
-                {isAuthenticated && <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />}
-                Portal Admin
+                <Rocket className="w-3.5 h-3.5" />
+                Oportunidad
               </Link>
             </nav>
 
@@ -154,8 +155,6 @@ export function Header() {
                 )}
               </div>
 
-              {/* Hidden Cart for Funnel Model */}
-
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -191,12 +190,32 @@ export function Header() {
                 <Search className="w-4 h-4 text-emerald-400" />
               </Link>
               <Link
+                href="/oportunidad"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between p-4 bg-emerald-600 rounded-2xl text-white font-bold hover:bg-emerald-700 transition-colors"
+              >
+                Oportunidad
+                <Rocket className="w-4 h-4 text-white" />
+              </Link>
+              {whatsappNumber && (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl text-slate-900 font-bold hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                >
+                  WhatsApp
+                  <MessageCircle className="w-4 h-4 text-emerald-500" />
+                </a>
+              )}
+              <Link
                 href="/admin"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-between p-4 bg-slate-900 rounded-2xl text-white font-bold hover:bg-slate-800 transition-colors"
+                className="flex items-center justify-between p-3 text-slate-400 hover:text-slate-700 text-xs font-bold transition-colors"
               >
-                Portal Admin
-                <User className="w-4 h-4 text-emerald-400" />
+                Panel Afiliado
+                <User className="w-3.5 h-3.5" />
               </Link>
 
               {/* Mobile currency selector */}
@@ -224,6 +243,23 @@ export function Header() {
           </div>
         </div>
       </header>
+
+      {/* Floating WhatsApp Button */}
+      {isMounted && whatsappNumber && (
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Contactar por WhatsApp"
+          className="fixed bottom-6 right-6 z-[90] w-14 h-14 bg-emerald-500 text-white rounded-full shadow-2xl shadow-emerald-500/40 flex items-center justify-center hover:bg-emerald-600 hover:scale-110 transition-all active:scale-95 group"
+        >
+          <MessageCircle className="w-7 h-7" />
+          <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-20" />
+          <span className="absolute right-full mr-3 whitespace-nowrap bg-slate-900 text-white text-xs font-bold px-3 py-2 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            ¿Hablamos?
+          </span>
+        </a>
+      )}
     </div>
   );
 }

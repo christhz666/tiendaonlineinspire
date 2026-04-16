@@ -74,8 +74,8 @@ export async function POST(request: NextRequest) {
 
     // Calculate price range
     const prices = productVariants.map(v => v.price);
-    const minPrice = Math.min(...prices);
-    const maxPrice = Math.max(...prices);
+    const minPrice = prices.length > 0 ? Math.min(...prices) : price || 0;
+    const maxPrice = prices.length > 0 ? Math.max(...prices) : price || 0;
 
     // Create the product
     const newProduct: Product = {

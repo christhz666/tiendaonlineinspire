@@ -1,36 +1,18 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type AdminTab = "manage" | "import" | "orders" | "permissions";
-
-export interface RolePermissions {
-  admin: AdminTab[];
-  staff: AdminTab[];
-  viewer: AdminTab[];
-}
+export type AdminTab = "manage" | "import" | "affiliate";
 
 interface ConfigStore {
-  permissions: RolePermissions;
-  updatePermissions: (role: keyof RolePermissions, tabs: AdminTab[]) => void;
+  activeTab: AdminTab;
+  setActiveTab: (tab: AdminTab) => void;
 }
-
-const defaultPermissions: RolePermissions = {
-  admin: ["manage", "import", "orders", "permissions"],
-  staff: ["manage", "orders"],
-  viewer: ["manage"],
-};
 
 export const useConfigStore = create<ConfigStore>()(
   persist(
     (set) => ({
-      permissions: defaultPermissions,
-      updatePermissions: (role, tabs) => 
-        set((state) => ({
-          permissions: {
-            ...state.permissions,
-            [role]: tabs,
-          },
-        })),
+      activeTab: "manage",
+      setActiveTab: (tab) => set({ activeTab: tab }),
     }),
     {
       name: "config-storage",

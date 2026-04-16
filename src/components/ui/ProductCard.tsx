@@ -2,66 +2,31 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingBag } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import type { Product } from "@/lib/types";
-import { useCartStore } from "@/stores/cartStore";
 import { useCurrencyStore } from "@/stores/currencyStore";
-import { useEffect } from "react";
+import { useAffiliateStore, withAffiliateRef } from "@/stores/affiliateStore";
 import { Button } from "./Button";
+import { ShareButton } from "./ShareButton";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const addItem = useCartStore((state) => state.addItem);
-  const openCart = useCartStore((state) => state.openCart);
   const format = useCurrencyStore((state) => state.format);
-  
-  // Add debug effect to see if component mounts
-  useEffect(() => {
-    console.log(`[ProductCard] Mounted for product: ${product.title}`);
-  }, [product.title]);
+  const refCode = useAffiliateStore((state) => state.refCode);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    console.log(`[ProductCard] handleAddToCart called for ${product.title}`);
-    console.log(`[ProductCard] Event target:`, e.target);
-    console.log(`[ProductCard] addItem function:`, typeof addItem);
-    console.log(`[ProductCard] openCart function:`, typeof openCart);
-    
+  const affiliateUrl = product.externalUrl
+    ? withAffiliateRef(product.externalUrl, refCode)
+    : "";
+
+  const handleBuyClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    if (!product.variants || product.variants.length === 0) {
-      console.error(`[ProductCard] No variants for product: ${product.title}`);
-      return;
-    }
-    
-    try {
-      const firstVariant = product.variants[0];
-      console.log(`[ProductCard] Selected variant:`, firstVariant);
-      
-      const cartItem = {
-        productId: product.id,
-        variantId: firstVariant.id,
-        title: product.title,
-        variantTitle: firstVariant.title,
-        quantity: 1,
-        price: firstVariant.price,
-        image: product.thumbnail,
-      };
-      
-      console.log(`[ProductCard] Adding item to cart:`, cartItem);
-      
-      // Call the store functions
-      addItem(cartItem);
-      console.log(`[ProductCard] addItem called successfully`);
-      
-      openCart();
-      console.log(`[ProductCard] openCart called successfully`);
-      
-    } catch (error) {
-      console.error(`[ProductCard] Error adding to cart:`, error);
+
+    if (affiliateUrl) {
+      window.open(affiliateUrl, "_blank", "noopener,noreferrer");
     }
   };
 
@@ -72,19 +37,26 @@ export function ProductCard({ product }: ProductCardProps) {
       data-testid={`product-card-${product.id}`}
     >
       {/* Image link */}
-      <Link href={`/product/${product.handle}`}>
-        <div className="relative aspect-square overflow-hidden bg-slate-100">
-          <Image
-            src={product.thumbnail}
-            alt={product.title}
-            fill
-            unoptimized
-            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-        </div>
-      </Link>
+      <div className="relative">
+        <Link href={`/product/${product.handle}`}>
+          <div className="relative aspect-square overflow-hidden bg-slate-100">
+            <Image
+              src={product.thumbnail}
+              alt={product.title}
+              fill
+              unoptimized
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+          </div>
+        </Link>
+        {affiliateUrl && (
+          <div className="absolute top-3 right-3 z-10">
+            <ShareButton title={product.title} url={affiliateUrl} compact />
+          </div>
+        )}
+      </div>
       
       {/* Content */}
       <div className="p-4">
@@ -114,14 +86,15 @@ export function ProductCard({ product }: ProductCardProps) {
             )}
           </div>
           
-          <Link href={`/product/${product.handle}`}>
-            <Button 
-              size="sm" 
-              className="relative px-5 bg-slate-900"
-            >
-              VER MÁS
-            </Button>
-          </Link>
+          <Button 
+            size="sm" 
+            className="relative px-5 bg-emerald-600 hover:bg-emerald-700"
+            onClick={handleBuyClick}
+            disabled={!product.externalUrl}
+          >
+            <ExternalLink className="w-4 h-4 mr-1" />
+            {product.externalUrl ? "Comprar en Inspire" : "No disponible"}
+          </Button>
         </div>
       </div>
     </div>

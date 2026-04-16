@@ -1,16 +1,17 @@
 "use client";
 
-import { useState, useEffect, use, useRef } from "react";
+import { useState, useEffect, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useProductByHandle } from "@/stores/productStore";
-import { useCartStore } from "@/stores/cartStore";
 import { useCurrencyStore } from "@/stores/currencyStore";
+import { useAffiliateStore, withAffiliateRef } from "@/stores/affiliateStore";
 import { Button } from "@/components/ui/Button";
-import { 
-  ArrowLeft, ShoppingBag, Check, AlertCircle, Minus, Plus, 
-  Truck, Leaf, ShieldCheck, Heart, Share2, Star,
-  Info, ChevronDown, Award
+import { ShareButton } from "@/components/ui/ShareButton";
+import {
+  ArrowLeft, ShoppingBag, Check, AlertCircle,
+  Truck, Leaf, ShieldCheck, Heart, Star,
+  Info, ChevronDown, Award, Rocket
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,22 +22,21 @@ interface ProductPageProps {
 export default function ProductPage({ params }: ProductPageProps) {
   const resolvedParams = use(params);
   const product = useProductByHandle(resolvedParams.id);
-  const addItem = useCartStore((state) => state.addItem);
-  const openCart = useCartStore((state) => state.openCart);
   const format = useCurrencyStore((state) => state.format);
-  
-  const [selectedVariantId, setSelectedVariantId] = useState<string>("");
-  const [quantity, setQuantity] = useState<number>(1);
+  const refCode = useAffiliateStore((state) => state.refCode);
+  const sponsorUrl = useAffiliateStore((state) => state.sponsorUrl);
+  const fetchAffiliate = useAffiliateStore((state) => state.fetchConfig);
+
   const [activeImageIdx, setActiveImageIdx] = useState(0);
-  const [addedToCart, setAddedToCart] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [activeAccordion, setActiveAccordion] = useState<string | null>("description");
 
   useEffect(() => {
-    if (product?.variants && product.variants.length > 0) {
-      setSelectedVariantId(product.variants[0].id);
-    }
-  }, [product]);
+    fetchAffiliate();
+  }, [fetchAffiliate]);
+
+  const affiliateUrl = product?.externalUrl
+    ? withAffiliateRef(product.externalUrl, refCode)
+    : "";
 
   if (!product) {
     return (
@@ -52,30 +52,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     );
   }
 
-  const selectedVariant = product.variants.find(v => v.id === selectedVariantId) || product.variants[0];
   const images = product.images.length > 0 ? product.images : [{ id: '1', url: product.thumbnail }];
-
-  const handleAddToCart = () => {
-    try {
-      if (!selectedVariant) return;
-
-      addItem({
-        productId: product.id,
-        variantId: selectedVariant.id,
-        title: product.title,
-        variantTitle: selectedVariant.title,
-        quantity: quantity,
-        price: selectedVariant.price,
-        image: product.thumbnail,
-      });
-      
-      openCart();
-      setAddedToCart(true);
-      setTimeout(() => setAddedToCart(false), 2000);
-    } catch (err) {
-      setError("Error al agregar al carrito");
-    }
-  };
 
   const toggleAccordion = (id: string) => {
     setActiveAccordion(activeAccordion === id ? null : id);
@@ -113,9 +90,9 @@ export default function ProductPage({ params }: ProductPageProps) {
                 <button className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-md border border-slate-200 flex items-center justify-center text-slate-600 hover:text-red-500 hover:bg-white transition-all shadow-sm">
                   <Heart className="w-5 h-5" />
                 </button>
-                <button className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-md border border-slate-200 flex items-center justify-center text-slate-600 hover:text-emerald-600 hover:bg-white transition-all shadow-sm">
-                  <Share2 className="w-5 h-5" />
-                </button>
+                {affiliateUrl && (
+                  <ShareButton title={product.title} url={affiliateUrl} compact />
+                )}
               </div>
             </div>
 
@@ -159,12 +136,12 @@ export default function ProductPage({ params }: ProductPageProps) {
 
             <div className="flex items-center gap-4 mb-8">
               <span suppressHydrationWarning className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-                {format(selectedVariant?.price || product.priceRange.minPrice)}
+                {format(product.priceRange.minPrice)}
               </span>
-              {(selectedVariant?.compareAtPrice || product.compareAtPrice) && (
+              {product.compareAtPrice && (
                 <div className="flex items-center gap-2">
                   <span suppressHydrationWarning className="text-lg text-slate-400 line-through">
-                    {format(selectedVariant?.compareAtPrice || product.compareAtPrice || 0)}
+                    {format(product.compareAtPrice)}
                   </span>
                   <span className="px-2 py-1 bg-rose-50 text-rose-600 text-xs font-bold rounded-lg border border-rose-100">
                     OFERTA
@@ -173,75 +150,53 @@ export default function ProductPage({ params }: ProductPageProps) {
               )}
             </div>
 
-            {/* Options Selector */}
-            {product.options.length > 0 && product.options.some(opt => opt.values.length > 1) && (
-              <div className="mb-8 space-y-4">
-                {product.options.filter(opt => opt.values.length > 1).map((opt) => (
-                  <div key={opt.id}>
-                    <p className="text-sm font-bold text-slate-900 mb-3 flex items-center justify-between">
-                      {opt.name}
-                      <span className="text-slate-400 font-normal">Siete opciones</span>
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {opt.values.map((val) => {
-                        const variant = product.variants.find(v => 
-                          v.options[opt.name.toLowerCase()] === val || v.title === val
-                        );
-                        const isSelected = variant?.id === selectedVariantId;
-                        return (
-                          <button
-                            key={val}
-                            onClick={() => variant && setSelectedVariantId(variant.id)}
-                            className={cn(
-                              "px-4 py-2 rounded-xl font-semibold text-sm transition-all border-2",
-                              isSelected 
-                                ? "bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20 scale-105" 
-                                : "bg-white border-slate-200 text-slate-600 hover:border-emerald-300 hover:text-emerald-700 shadow-sm"
-                            )}
-                          >
-                            {val}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
             {/* Action Bar */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-10 pt-4 border-t border-slate-100">
-              <div className="flex items-center bg-white rounded-2xl border-2 border-slate-200 p-1 shadow-sm">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-12 h-12 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
-                >
-                  <Minus className="w-5 h-5" />
-                </button>
-                <span className="w-10 text-center font-bold text-slate-900 text-lg">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-12 h-12 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
-                >
-                  <Plus className="w-5 h-5" />
-                </button>
-              </div>
-
-              <Button 
+            <div className="flex flex-col gap-4 mb-10 pt-4 border-t border-slate-100">
+              <Button
                 onClick={() => {
-                  if (product.externalUrl) {
-                    window.open(product.externalUrl, '_blank');
+                  if (affiliateUrl) {
+                    window.open(affiliateUrl, '_blank', 'noopener,noreferrer');
                   } else {
                     alert("Lo sentimos, este producto no tiene un link de compra asignado.");
                   }
                 }}
-                className="flex-1 py-7 rounded-2xl text-lg font-bold shadow-xl shadow-emerald-900/10 transition-transform active:scale-[0.98] bg-slate-900"
+                disabled={!affiliateUrl}
+                className="w-full py-7 rounded-2xl text-lg font-bold shadow-xl shadow-emerald-900/10 transition-transform active:scale-[0.98] bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center gap-3">
                   <ShoppingBag className="w-6 h-6" />
-                  VER EN TIENDA OFICIAL
+                  {affiliateUrl ? "Comprar en Inspire" : "No disponible"}
                 </div>
               </Button>
+              {affiliateUrl && (
+                <p className="text-xs text-slate-500 text-center">
+                  Serás redirigido a la tienda oficial de Inspire International
+                </p>
+              )}
+            </div>
+
+            {/* Recruitment CTA */}
+            <div className="mb-10 p-5 rounded-3xl bg-gradient-to-br from-emerald-50 via-emerald-100/50 to-teal-50 border border-emerald-200">
+              <div className="flex items-start gap-4">
+                <div className="w-11 h-11 bg-emerald-600 rounded-2xl flex items-center justify-center flex-shrink-0 text-white">
+                  <Rocket className="w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-black text-slate-900 text-sm leading-tight mb-1">¿Más que cliente? Empresario.
+                  </p>
+                  <p className="text-xs text-slate-600 mb-3 leading-relaxed">
+                    Comprá estos productos con descuento y ganá comisiones vendiéndolos.
+                  </p>
+                  <a
+                    href={sponsorUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-xs font-black text-emerald-700 hover:text-emerald-900 uppercase tracking-widest"
+                  >
+                    Ser empresario →
+                  </a>
+                </div>
+              </div>
             </div>
 
             {/* Trust Badges */}
@@ -251,8 +206,8 @@ export default function ProductPage({ params }: ProductPageProps) {
                   <ShieldCheck className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-900">Pago Seguro</p>
-                  <p className="text-[10px] text-slate-500">PayPal Encrypt</p>
+                  <p className="text-xs font-bold text-slate-900">Compra Oficial</p>
+                  <p className="text-[10px] text-slate-500">Inspire International</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm transition-hover hover:border-blue-200 hover:shadow-md">

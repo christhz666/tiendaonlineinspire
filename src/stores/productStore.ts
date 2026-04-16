@@ -67,14 +67,14 @@ export const useProductStore = create<ProductStore>()(
             // If the user used the SQL I provided, we need to map names.
             const mappedData = data.map((p: any) => ({
                 ...p,
-                descriptionHtml: p.description_html,
-                productType: p.product_type,
-                priceRange: p.price_range,
-                compareAtPrice: p.compare_at_price,
-                shippingInfo: p.shipping_info,
-                externalUrl: p.external_url,
-                createdAt: p.created_at,
-                updatedAt: p.updated_at
+                descriptionHtml: p.description_html ?? p.descriptionHtml,
+                productType: p.product_type ?? p.productType,
+                priceRange: p.price_range ?? p.priceRange,
+                compareAtPrice: p.compare_at_price ?? p.compareAtPrice,
+                shippingInfo: p.shipping_info ?? p.shippingInfo,
+                externalUrl: p.external_url ?? p.externalUrl,
+                createdAt: p.created_at ?? p.createdAt,
+                updatedAt: p.updated_at ?? p.updated_at
             }));
             set({ products: mappedData, featuredProducts: mappedData.filter((p: any) => p.status === "published") });
           } else {
@@ -120,7 +120,9 @@ export const useProductStore = create<ProductStore>()(
             
             set((state) => ({
                 products: [...state.products, product],
-                featuredProducts: [...state.featuredProducts, product]
+                featuredProducts: product.status === "published" 
+                    ? [...state.featuredProducts, product]
+                    : state.featuredProducts
             }));
         } catch (err: any) {
             console.error("Add product error:", err);

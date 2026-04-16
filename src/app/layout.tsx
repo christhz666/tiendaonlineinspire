@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/ui/Header";
 import { Footer } from "@/components/ui/Footer";
-import { CartSidebar } from "@/components/ui/CartSidebar";
 import { CurrencyDetector } from "@/components/ui/CurrencyDetector";
 import { Providers } from "@/components/providers/Providers";
 
@@ -23,7 +22,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  console.log('[Layout] RootLayout rendered');
   return (
     <html lang="es" className={inter.variable}>
       <body 
@@ -37,7 +35,6 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
-          {/* <CartSidebar /> */}
         </Providers>
       </body>
     </html>

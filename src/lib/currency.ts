@@ -75,7 +75,8 @@ export async function syncLatestRates(): Promise<void> {
     for (const key of Object.keys(CURRENCY_MAP)) {
       const code = CURRENCY_MAP[key].code;
       if (code !== "USD" && rates[code]) {
-        // REQUERIMIENTO: "simpre tenga un peso por arriba"
+        // REQUERIMIENTO: agregar 1 unidad de la moneda (ej: 1 DOP, 1 MXN) como margen
+        // Esto es "un peso por arriba", no 1%
         CURRENCY_MAP[key].rate = rates[code] + 1;
       }
     }

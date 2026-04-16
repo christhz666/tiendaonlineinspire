@@ -1,45 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as cheerioLib from "cheerio";
 import type { AnyNode } from "domhandler";
+import type { ScrapedProductData } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-interface ScrapedMetadata {
-  title: string;
-  description: string;
-  price?: number;
-  compareAtPrice?: number;
-  currency?: string;
-  images: string[];
-  vendor?: string;
-  availability?: string;
-  url: string;
-  features: string[];
-  shippingInfo: string[];
-  badges: string[];
-  variants?: Array<{
-    id: string;
-    title: string;
-    price: number;
-    compareAtPrice?: number;
-    available: boolean;
-  }>;
-  error?: string;
-}
-
 import { CURRENCY_MAP, syncLatestRates } from "@/lib/currency";
 
-async function parsePrice(priceStr: string | undefined, taxMultiplier: number = 1.0): Promise<number | undefined> {
+async function parsePrice(
+  priceStr: string | undefined, 
+  taxMultiplier: number = 1.0,
+  currencyMap: Record<string, any> = CURRENCY_MAP
+): Promise<number | undefined> {
   if (!priceStr) return undefined;
   const cleaned = priceStr.replace(/[^0-9.,]/g, "").replace(",", ".");
   const num = parseFloat(cleaned);
   if (isNaN(num)) return undefined;
 
-  // Actualizamos los rates para ser lo más exactos posibles
-  await syncLatestRates();
-  
   // Asumimos que los precios vienen en Peso Dominicano (DOP) ya que se scrappea de allí
-  const dopRate = CURRENCY_MAP["DO"].rate;
+  const dopRate = currencyMap["DO"].rate;
 
   // Convertimos el precio DOP a dólares, y luego a centavos de USD (nuestro formato interno).
   // Si el usuario quiere dropshipping, aquí es donde lo convertimos a la moneda base.
@@ -61,7 +40,7 @@ function normalizeImage(src: string, baseUrl: string): string {
 }
 
 /** Intenta extraer datos desde la Shopify JSON API (products.json o product.json) */
-async function tryShopifyAPI(pageUrl: URL, taxMultiplier: number = 1.0): Promise<ScrapedMetadata | null> {
+async function tryShopifyAPI(pageUrl: URL, taxMultiplier: number = 1.0): Promise<ScrapedProductData | null> {
   try {
     // Shopify expone el producto como /products/{handle}.json
     const handle = pageUrl.pathname.replace(/\/$/, "").split("/").pop();
@@ -99,8 +78,8 @@ async function tryShopifyAPI(pageUrl: URL, taxMultiplier: number = 1.0): Promise
       }) => ({
         id: String(v.id),
         title: v.title,
-        price: (await parsePrice(v.price, taxMultiplier)) ?? 0,
-        compareAtPrice: v.compare_at_price ? await parsePrice(v.compare_at_price, taxMultiplier) : undefined,
+        price: (await parsePrice(v.price, taxMultiplier, CURRENCY_MAP)) ?? 0,
+        compareAtPrice: v.compare_at_price ? await parsePrice(v.compare_at_price, taxMultiplier, CURRENCY_MAP) : undefined,
         available: v.available ?? true,
       }))
     );
@@ -177,21 +156,46 @@ function extractFeaturesFromHtml(html: string): string[] {
   return features.slice(0, 15);
 }
 
+/** Inject the affiliate ref code (sca_ref + sca_source) if missing. */
+function ensureAffiliateRef(rawUrl: string, refCode?: string): string {
+  if (!rawUrl || !refCode) return rawUrl;
+  try {
+    const url = new URL(rawUrl);
+    if (!url.searchParams.has("sca_ref")) {
+      url.searchParams.set("sca_ref", refCode);
+    }
+    if (!url.searchParams.has("sca_source")) {
+      url.searchParams.set("sca_source", "inspire su vida");
+    }
+    return url.toString();
+  } catch {
+    return rawUrl;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    let { url, taxRate } = body;
+    let { url, taxRate, refCode } = body;
 
     const rate = taxRate ? parseFloat(taxRate) : 1.0;
 
-    console.log("[SCRAPE] Received URL:", url, "Tax Rate:", rate);
+    console.log("[SCRAPE] Received URL:", url, "Tax Rate:", rate, "RefCode:", refCode ? "yes" : "no");
 
     if (!url) {
       return NextResponse.json({ error: "URL es requerida" }, { status: 400 });
     }
 
+    // Sync currency rates ONCE per scrape request (not per variant)
+    await syncLatestRates();
+
     if (!url.startsWith("http://") && !url.startsWith("https://")) {
       url = "https://" + url;
+    }
+
+    // Auto-inject affiliate ref code if missing (for Inspire product URLs)
+    if (refCode && typeof refCode === "string") {
+      url = ensureAffiliateRef(url, refCode);
     }
 
     let parsedUrl: URL;
@@ -234,7 +238,7 @@ export async function POST(request: NextRequest) {
     const cheerio = await import("cheerio");
     const $ = cheerio.load(html);
 
-    const metadata: ScrapedMetadata = {
+    const metadata: ScrapedProductData = {
       title: "",
       description: "",
       images: [],
@@ -273,7 +277,7 @@ export async function POST(request: NextRequest) {
       const el = $(sel).first();
       const val = el.attr("content") || el.attr("data-price") || el.text();
       if (val) {
-        metadata.price = await parsePrice(val, rate);
+        metadata.price = await parsePrice(val, rate, CURRENCY_MAP);
         if (metadata.price) break;
       }
     }
@@ -292,7 +296,7 @@ export async function POST(request: NextRequest) {
       const el = $(sel).first();
       const val = el.attr("content") || el.text();
       if (val) {
-        metadata.compareAtPrice = await parsePrice(val, rate);
+        metadata.compareAtPrice = await parsePrice(val, rate, CURRENCY_MAP);
         if (metadata.compareAtPrice) break;
       }
     }
